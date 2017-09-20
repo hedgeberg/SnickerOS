@@ -1,0 +1,30 @@
+ARMGNU  = arm-linux-gnueabihf
+COPS    = -nostdlib
+ARCH    = -mcpu=cortex-a9 -mfpu=vfpv3 
+
+gcc : main.bin
+
+all : gcc clang
+
+clean :
+	rm -f *.o
+	rm -f *.bin
+	rm -f *.hex
+	rm -f *.elf
+	rm -f *.list
+	rm -f *.img
+	rm -f *.bc
+
+clang: main.bin
+
+startup.o : startup.s
+	$(ARMGNU)-as $(ARCH) startup.s -o startup.o
+
+main.o : main.c
+	$(ARMGNU)-gcc $(COPS) $(ARCH) -o main.o -c main.c $(wildcard src/lib/*.c) 
+
+main.bin : memmap.ld startup.o main.o 
+	$(ARMGNU)-ld $(COPS) startup.o main.o -T memmap.ld -o main.elf
+	$(ARMGNU)-objdump -D main.elf > main.list
+	$(ARMGNU)-objcopy main.elf -O ihex main.hex
+	$(ARMGNU)-objcopy main.elf -O binary main.bin

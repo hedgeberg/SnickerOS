@@ -1,0 +1,30 @@
+TODO:
+--serial
+	--done, have puts
+
+--File system
+	--FAT
+
+--Memory allocation 
+	--MALLOC
+
+--processes/threads
+	--no fuckin clue
+
+--reverse fundamental operations
+	--going in and decompiling and understanding serial procedure
+
+order:
+	-memory management
+	-threading/synchronization
+	-file system
+	...
+
+Memory allocation:
+
+	-acessign DRAM?????
+	-mapping pages
+	-per-process allocation 
+	-memory space safety
+
+	

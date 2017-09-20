@@ -1,0 +1,10 @@
+OS TODO: 
+
+--Set up gdb debugging toolchain 
+	--openocd running
+
+--Blink 1 LED 
+
+--Serial over USB comms
+
+--Filesystem
