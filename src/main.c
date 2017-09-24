@@ -29,8 +29,7 @@ void main()
   initialize_heap((void *)HEAP_BASE);
 
   char * strbuf = malloc(20);
-  char str[9] = "test %d\r\n";
-  sprintf(strbuf, str, 7);
+  sprintf(strbuf, "test %u 0x%x %s\r\n", 7, 0xADADCAFE, "this is a string");
   puts(strbuf);
   puts("Hello world!\r\n");
 

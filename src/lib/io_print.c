@@ -1,5 +1,6 @@
 #include "io_print.h"
 #include "stdarg.h"
+#include "stdint.h"
 
 #define UART0_TxRxFIFO0 ((unsigned int *) (UART0_BASE + 0x30))
 #define UART0_BASE 0xe0000000
@@ -22,21 +23,24 @@ int puts(const char *s)
 int sprintf(char * buffer, char * format_str, ...)
 {
 
-	//int count = 0;
-
-	//count formatter entries
-	/*
-	for(int i = 0; format_str[i] != '\0'; i++){
-		if(format_str[i] == '%') count += 1;
-	}
-	*/
+	//LIST ASSUMPTIONS:
+	//u: assumes unsigned integer
+	//s: null-terminated string
+	//x: assumes 32-bit number
 	//start parsing varargs
 	va_list ap;
 	va_start(ap, format_str);
 
 	int i = 0;
 	int j = 0;
+	int varwidth = 0;
+	int varint;
+	char * passed_buf;
+
+	char intbuf[11];
 	while(format_str[i] != '\0'){
+		varint = 0;
+		varwidth = 0;
 		if(format_str[i] != '%'){
 			buffer[j] = format_str[i];
 			j++;
@@ -44,22 +48,47 @@ int sprintf(char * buffer, char * format_str, ...)
 		} else {
 			switch(format_str[i+1]){
 
-				case 'd' :
-					buffer[j] = (char)('0' + va_arg(ap, int));
-					j += 1;
+				case 'u' :
+					varint = va_arg(ap, int);
+					if(varint == 0){
+						buffer[j] = '0';
+						j += 1;
+						i += 2;
+						break;
+					}
+					while(varint > 0){
+						intbuf[varwidth] = (char)('0' + (varint % 10));
+						varint = varint/10;
+						varwidth += 1;
+					}
+					for(int k = varwidth; k > 0; k--){
+						buffer[j + (varwidth - k)] = intbuf[k - 1];
+					}
+					j += varwidth;
 					i += 2;
 					break;
 
 				case 's' :
-					//include str
+					passed_buf = va_arg(ap, char *);
+					for(int k = 0; passed_buf[k] != '\0'; k++){
+						buffer[j] = passed_buf[k];
+						j++;
+					}
+					i += 2;
 					break;
 
 				case 'x' :
-					//include hex
+					varint = va_arg(ap, uint32_t);
+					for(int k = 7; k >= 0; k--){
+						buffer[j + (7-k)] = "0123456789ABCDEF"[
+										(varint >> (k * 4)) & 0x0F];
+					}
+					j += 8;
+					i += 2;
 					break;
 
 				default : 
-					//all else, throw an error
+					return 0;
 					break;
 
 			}
