@@ -1,27 +1,12 @@
-#include  "lib/memory.h"
-#include  "lib/ps7_init_gpl.h"
+#include "lib/memory.h"
+#include "lib/ps7_init_gpl.h"
 #include <stdint.h>
 #include <stddef.h>
-#include  "lib/heap.h"
+#include "lib/heap.h"
+#include "lib/io_print.h"
 
 #define HEAP_BASE 0x00800000
-#define UART0_BASE 0xe0000000
-#define UART0_TxRxFIFO0 ((unsigned int *) (UART0_BASE + 0x30))
 
-volatile unsigned int * const TxRxUART0 = UART0_TxRxFIFO0;
-	 
-
-
-
-int puts(const char *s) 
-{
-  while(*s != '\0') 
-  {     /* Loop until end of string */
-    *TxRxUART0 = (unsigned int)(*s); /* Transmit char */
-    s++; /* Next char */
-  }
-    return 0;
-}
 
 void setup_vectors(){
   uint32_t vector = 0xEAFFFFFE;
@@ -43,13 +28,10 @@ void main()
 
   initialize_heap((void *)HEAP_BASE);
 
-  char * blah_pointer = malloc(5);
-  char * another_one = malloc(4);
-  blah_pointer[0] = 'a';
-  another_one[2] = 'd';
-  free(blah_pointer);
-  char * one_mo_again = malloc(4);
-  one_mo_again[0] = 'A';
+  char * strbuf = malloc(20);
+  char str[9] = "test %d\r\n";
+  sprintf(strbuf, str, 7);
+  puts(strbuf);
   puts("Hello world!\r\n");
 
   while(1);
