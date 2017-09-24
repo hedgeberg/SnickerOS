@@ -3,5 +3,6 @@ OS TODO:
 --implement sprintf
 
 --Finish malloc
+	--ensure malloc aligns to 4-byte buffers
 
 --Filesystem

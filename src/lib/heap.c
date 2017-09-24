@@ -2,6 +2,7 @@
 #include "heap.h"
 
 #define HEAP_MAX_SIZE 0x100000 //1 MibbiByte
+#define MIN_BUFF_SIZE 4
 #define ALLOC 1
 #define FREED 0
 
@@ -28,32 +29,41 @@ void initialize_heap(void * heap_base_addr){
 }
 
 void * malloc(size_t size){
-/*
-	cases:
-		1. heap empty. heap_prev == heap_next
-		2. heap full. heap_next + size_desired > HEAP_BASE + HEAP_MAX_SIZE
-		3. heap roaming
-*/
+
+	//padding logic (round up to 4-byte sizes)
+	size_t size_pad = (size + 3) & ~3; //thx scanlime!
+	/*
+	if(size & 0x00000003){ //0b0..0011
+		size_pad = size & 0xFFFFFFFC; //0b1...1100
+		size_pad += 4;
+	} else {
+		size_pad = size;
+	}*/
+	//rover logic -- seeks a correctly sized block
 	free_list_entry_t * rover = heap_base_obj;
-	while(!((rover->size >= size) 
+	while(!((rover->size >= size_pad) 
 		  && (rover->alloc_flag == FREED))) {
+		if(rover->next == heap_base_obj) return NULL;
 		rover = rover->next;
-		//return NULL if we hit end of heap
 	}
-	//either size == rover->size (or isnt large enough to 
-		//create an unorphaned header)
-		//just switch freed to alloced
-	//else{
+	//new block logic
+	if(rover->size <= (size + 2*sizeof(free_list_entry_t) + MIN_BUFF_SIZE)){
+		//don't make new node
+		rover->alloc_flag = ALLOC;
+	} else {
 		free_list_entry_t * new_entry = 
-			(free_list_entry_t *)((uint8_t *)(rover + 1) + size);
+			(free_list_entry_t *)((uint8_t *)(rover + 1) + size_pad);
 		new_entry->prev = rover;
 		new_entry->next = rover->next;
 		rover->next = new_entry;
-		new_entry->size = rover->size - size - sizeof(free_list_entry_t);
+		new_entry->size = rover->size - size_pad - sizeof(free_list_entry_t);
 		new_entry->alloc_flag = FREED;
-		rover->size = size;
+		rover->size = size_pad;
 		rover->alloc_flag = ALLOC;
-	//}
+	}
+	//zeroing logic
+	char * buffer = (char *)(void *)(rover + 1);
+	for(int i = 0; i < size_pad; i++) buffer[i] = (char)0;
 	return (void *)(rover + 1);
 }
 
