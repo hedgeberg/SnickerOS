@@ -44,7 +44,10 @@ void main()
   initialize_heap((void *)HEAP_BASE);
 
   char * blah_pointer = malloc(4);
+  char * another_one = malloc(4);
   blah_pointer[0] = 'a';
+  another_one[2] = 'd';
+  free(blah_pointer);
 
   puts("Hello world!\r\n");
 

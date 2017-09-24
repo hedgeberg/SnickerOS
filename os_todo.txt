@@ -1,10 +1,7 @@
 OS TODO: 
 
---Set up gdb debugging toolchain 
-	--openocd running
+--implement sprintf
 
---Blink 1 LED 
-
---Serial over USB comms
+--Finish malloc
 
 --Filesystem

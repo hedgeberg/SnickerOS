@@ -57,6 +57,30 @@ void * malloc(size_t size){
 	return (void *)(rover + 1);
 }
 
-void free(void * object);
+void free(void * object){
+	free_list_entry_t * object_node = 
+		((free_list_entry_t *)object) - 1;
+	if(object_node == heap_base_obj){ //freeing top of heap
+		if(object_node->next->alloc_flag == ALLOC){
+			object_node->alloc_flag = FREED;
+		}
+		else{
+			object_node->size = object_node->size + 
+				object_node->next->size + sizeof(free_list_entry_t);
+			object_node->next = object_node->next->next;
+			object_node->alloc_flag = FREED;
+		}
+	}
+	//edge case for freeing at the end of the heap
+	//object is between 2 allocated blocks
+		//set alloc_flag = FREED
+	//block below is allocated, block above is free
+		//newly freed block is merged into block above
+	//block below is free, block above is allocated
+		//block below is merged into newly freed block
+	//block is between 2 free blocks
+		//block below and newly freed block is merged into block above
+	return;
+}
 
 //int check_heap_integrity();
