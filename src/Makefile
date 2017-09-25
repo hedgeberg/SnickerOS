@@ -16,6 +16,7 @@ clean :
 	rm -f *.list
 	rm -f *.img
 	rm -f *.bc
+	rm -f lib/*.o
 
 clang: main.bin
 

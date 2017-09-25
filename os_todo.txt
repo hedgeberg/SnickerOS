@@ -1,8 +1,10 @@
 OS TODO: 
 
 --implement sprintf
+	--ensure %% is ignored in vararg counting
+	--size tags
 
 --Finish malloc
-	--ensure malloc aligns to 4-byte buffers
+	--implement all cases of free
 
 --Filesystem
