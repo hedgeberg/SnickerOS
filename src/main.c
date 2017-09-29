@@ -24,10 +24,11 @@ void main()
 {
   initialize_heap((void *)HEAP_BASE);
 
-  char * strbuf = malloc(40);
-  sprintf(strbuf, "test %u 0x%x %s\r\n", 7, 0xADADCAFE, "this is a string");
-  puts(strbuf);
-  free(strbuf);
+  //char * strbuf = malloc(40);
+  //sprintf(strbuf, "test %u 0x%x %s\r\n", 7, 0xADADCAFE, "this is a string");
+  //puts(strbuf);
+  //free(strbuf);
+  printf("test %u 0x%x %s\r\n", 7, 0xADADCAFE, "this is a string");
   puts("Hello world!\r\n");
 
   while(1);
