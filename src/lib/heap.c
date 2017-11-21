@@ -32,13 +32,7 @@ void * malloc(size_t size){
 
 	//padding logic (round up to 4-byte sizes)
 	size_t size_pad = (size + 3) & ~3; //thx scanlime!
-	/*
-	if(size & 0x00000003){ //0b0..0011
-		size_pad = size & 0xFFFFFFFC; //0b1...1100
-		size_pad += 4;
-	} else {
-		size_pad = size;
-	}*/
+
 	//rover logic -- seeks a correctly sized block
 	free_list_entry_t * rover = heap_base_obj;
 	while(!((rover->size >= size_pad) 
@@ -48,7 +42,7 @@ void * malloc(size_t size){
 	}
 	//new block logic
 	if(rover->size <= (size + 2*sizeof(free_list_entry_t) + MIN_BUFF_SIZE)){
-		//don't make new node
+		//too small to split in 2
 		rover->alloc_flag = ALLOC;
 	} else {
 		free_list_entry_t * new_entry = 
@@ -70,26 +64,65 @@ void * malloc(size_t size){
 void free(void * object){
 	free_list_entry_t * object_node = 
 		((free_list_entry_t *)object) - 1;
+	if(object_node->alloc_flag == FREED) return; 
 	if(object_node == heap_base_obj){ //freeing top of heap
 		if(object_node->next->alloc_flag == ALLOC){
+			//next block is alocated
 			object_node->alloc_flag = FREED;
 		}
 		else{
+			//next block is freed
 			object_node->size = object_node->size + 
 				object_node->next->size + sizeof(free_list_entry_t);
 			object_node->next = object_node->next->next;
 			object_node->alloc_flag = FREED;
 		}
 	}
-	//edge case for freeing at the end of the heap
-	//object is between 2 allocated blocks
-		//set alloc_flag = FREED
+	else if(object_node->next == heap_base_obj){
+		//freeing at end of heap
+		object_node->prev->next = heap_base_obj;
+		object_node->alloc_flag = FREED;
+		if(object_node->prev->alloc_flag == FREED){
+			//edge case for previous object freed
+			object_node->prev->size += 
+				(object_node->size + sizeof(free_list_entry_t));
+		}
+	}
+	else if((object_node->prev->alloc_flag == ALLOC) 
+			&& (object_node->next->alloc_flag == ALLOC)){
+		//object is between 2 allocated blocks
+		object_node->alloc_flag = FREED;
+	}
+	else if((object_node->prev->alloc_flag == FREED)
+			&& (object_node->next->alloc_flag == ALLOC)){
 	//block below is allocated, block above is free
 		//newly freed block is merged into block above
+		object_node->prev->size += 
+					(object_node->size + sizeof(free_list_entry_t));
+		object_node->prev->next = object_node->next;
+		object_node->next->prev = object_node->prev;
+		object_node->alloc_flag = FREED;
+	}
+	else if((object_node->prev->alloc_flag == ALLOC) && 
+			(object_node->next->alloc_flag == FREED)){
 	//block below is free, block above is allocated
 		//block below is merged into newly freed block
+		object_node->size += 
+				object_node->next->size + sizeof(free_list_entry_t);
+		object_node->next->next->prev = object_node;
+		object_node->next = object_node->next->next;
+		object_node->alloc_flag = FREED;
+
+	}
+	else{
 	//block is between 2 free blocks
 		//block below and newly freed block is merged into block above
+		object_node->prev->size += (object_node->size + 
+				object_node->next->size + 2*sizeof(free_list_entry_t));
+		object_node->next->next->prev = object_node->prev;
+		object_node->prev->next = object_node->next->next;
+		object_node->alloc_flag=FREED;
+	}
 	return;
 }
 

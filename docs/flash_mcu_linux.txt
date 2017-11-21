@@ -1,0 +1,22 @@
+# Flashing the MCU from linux
+
+In order to flash the MCU from linux distro's, you'll basically need dfu-util
+
+	1. Set up dfu-util
+		a. Download from their git repo
+		b. ```
+			./autogen.h
+			./configure
+			make
+			sudo make install
+		```
+	2. Put board in DFU mode
+		a. Power off board
+		b. remove SD card
+		c. hold SELECT + RE/SET buttons WHILE BOARD IS UNPLUGGED
+		d. While still holding buttons, plug in. Hold button until White LED turns off
+		e. check for the most recent device in dmesg for "Product: STM32 BOOTLOADER".
+			If this shows up it worked. 
+	3. run "sudo dfu-util -l" to ensure device enumerated
+	4. the MCU internal flash requires -a 1, whereas -a 0 will get you the options flags
+	5. You can test dumping using "sudo dfu-util -a 1 -u testdump.bin" if this is the only dfu device hooked up to your PC
