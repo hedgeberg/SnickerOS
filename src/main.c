@@ -24,12 +24,34 @@ void main()
 {
   initialize_heap((void *)HEAP_BASE);
 
-  //char * strbuf = malloc(40);
-  //sprintf(strbuf, "test %u 0x%x %s\r\n", 7, 0xADADCAFE, "this is a string");
-  //puts(strbuf);
-  //free(strbuf);
-  printf("test %u 0x%x %s\r\n", 7, 0xADADCAFE, "this is a string");
-  puts("Hello world!\r\n");
+  int status; 
+
+  void * ptr1 = malloc(20*sizeof(char));
+  status = check_heap_integrity();
+  printf("status after alloc 1 = %u\r\n", status);
+  
+  void * ptr2 = malloc(20*sizeof(char));
+  status = check_heap_integrity();
+  printf("status after alloc 2 = %u\r\n", status);
+
+  free(ptr1);
+  status = check_heap_integrity();
+  printf("status after free 1 = %u\r\n", status);
+
+  free(ptr2);
+  status = check_heap_integrity();
+  printf("status after free 2 = %u\r\n", status);
+
+  void * ptr3 = malloc(600*sizeof(char));
+  status = check_heap_integrity();
+  printf("status after alloc 3 = %u\r\n", status);
+
+  free(ptr3);
+  status = check_heap_integrity();
+  printf("status after free 3 = %u\r\n", status);
+
+  //printf("test %u 0x%x %s\r\n", 7, 0xADADCAFE, "this is a string");
+  //puts("Hello world!\r\n");
 
   while(1);
 }

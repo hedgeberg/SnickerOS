@@ -2,18 +2,26 @@
 #include "stdarg.h"
 #include "stdint.h"
 
-#define UART0_TxRxFIFO0 ((unsigned int *) (UART0_BASE + 0x30))
 #define UART0_BASE 0xe0000000
+#define UART0_TxRxFIFO0 ((unsigned int *) (UART0_BASE + 0x30))
+#define UART0_UARTPS_SR_OFFSET ((unsigned int *)(UART0_BASE + 0x2C)) 
+
+#define UART0_TTRIG (((*UART0PS) >> 14) & 0x01)
 
 volatile unsigned int * const TxRxUART0 = UART0_TxRxFIFO0;
-	 
+volatile unsigned int * const UART0PS = UART0_UARTPS_SR_OFFSET;
 
-
+int putchar(int c){
+	while(UART0_TTRIG){;}
+	*TxRxUART0 = (unsigned int)(char)c;
+	return 0;
+}
 
 int puts(const char *s) 
 {
 	while(*s != '\0') 
 	{     /* Loop until end of string */
+		while(UART0_TTRIG){;}
     	*TxRxUART0 = (unsigned int)(*s); /* Transmit char */
     	s++; /* Next char */
 	}
@@ -41,7 +49,7 @@ int printf(char * format_str, ...)
 		varint = 0;
 		varwidth = 0;
 		if(format_str[i] != '%'){
-			*TxRxUART0 = (unsigned int)format_str[i];
+			putchar((unsigned int)format_str[i]);
 			j++;
 			i++;
 		} else {
@@ -50,7 +58,7 @@ int printf(char * format_str, ...)
 				case 'u' :
 					varint = va_arg(ap, int);
 					if(varint == 0){
-						*TxRxUART0 = (unsigned int)'0';
+						putchar((unsigned int)'0');
 						j += 1;
 						i += 2;
 						break;
@@ -61,7 +69,7 @@ int printf(char * format_str, ...)
 						varwidth += 1;
 					}
 					for(int k = varwidth; k > 0; k--){
-						*TxRxUART0 = (unsigned int)intbuf[k - 1];
+						putchar((unsigned int)intbuf[k - 1]);
 					}
 					j += varwidth;
 					i += 2;
@@ -70,7 +78,7 @@ int printf(char * format_str, ...)
 				case 's' :
 					passed_buf = va_arg(ap, char *);
 					for(int k = 0; passed_buf[k] != '\0'; k++){
-						*TxRxUART0 = (unsigned int)passed_buf[k];
+						putchar((unsigned int)passed_buf[k]);
 						j++;
 					}
 					i += 2;
@@ -79,8 +87,8 @@ int printf(char * format_str, ...)
 				case 'x' :
 					varint = va_arg(ap, uint32_t);
 					for(int k = 7; k >= 0; k--){
-						*TxRxUART0 = (unsigned int)"0123456789ABCDEF"[
-										(varint >> (k * 4)) & 0x0F];
+						putchar((unsigned int)"0123456789ABCDEF"[
+										(varint >> (k * 4)) & 0x0F]);
 					}
 					j += 8;
 					i += 2;
@@ -93,7 +101,7 @@ int printf(char * format_str, ...)
 			}
 		}
 	}
-	*TxRxUART0 = (unsigned int)'\0';
+	putchar((unsigned int)'\0');
 	return j;
 }
 

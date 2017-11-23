@@ -123,7 +123,30 @@ void free(void * object){
 		object_node->prev->next = object_node->next->next;
 		object_node->alloc_flag=FREED;
 	}
-	return;
+	return;                
 }
 
-//int check_heap_integrity();
+int check_heap_integrity(){
+	//loop through heap
+	//check each cell links correctly to next cell
+	//if the rover would exit the heap, or loops back, heap is corrupted
+	//uses a bytes counter to check for loop points so that if 
+	//
+	size_t current_total_size = 0;
+	size_t heap_min = (size_t)heap_base_obj;
+	size_t heap_max = heap_min + HEAP_MAX_SIZE;
+	for(free_list_entry_t * rover = heap_base_obj; 
+				rover->next != heap_base_obj; rover = rover->next){
+		if((rover->size == 0) || ((rover->size & 0b11) != 0)) return -1; //size non-aligned
+		else if((rover->alloc_flag != ALLOC) && 
+				(rover->alloc_flag != FREED)) return -2; //flag incorrect
+		else if(((size_t)rover->next >= (heap_max - sizeof(free_list_entry_t))) ||
+				((size_t)rover->next <= heap_min)) return -3; //next pointer is outside of bounds of heap
+		else if(rover->next->prev != rover) return -4; //next element does not point back to the current
+		else if(((current_total_size + rover->size) <= current_total_size) || 
+				(rover->size > HEAP_MAX_SIZE)) return -5;
+		current_total_size += rover->size;
+		if(current_total_size > HEAP_MAX_SIZE) return -6; //heap has looped and is too large
+	}
+	return 0;
+}

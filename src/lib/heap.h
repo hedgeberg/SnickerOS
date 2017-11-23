@@ -9,4 +9,6 @@ void * malloc(size_t size);
 
 void free(void * obj);
 
+int  check_heap_integrity();
+
 #endif
